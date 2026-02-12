@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0B1F4B" />
+    <title>FX Verlauf</title>
+
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icons/icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png" />
+  </head>
+  <body>
+    <div class="bg-orbit"></div>
+    <div class="bg-grid"></div>
+
+    <header class="app-header">
+      <div>
+        <p class="kicker">FX Verlauf</p>
+        <h1>Währungsentwicklung im Blick</h1>
+        <p class="subline">Referenzkurse (täglich) der EZB, visualisiert als PWA.</p>
+      </div>
+      <div class="badge">Daily Data</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <div class="row controls">
+          <div class="pair-control">
+            <div class="select-group">
+              <label for="from">Von</label>
+              <select id="from"></select>
+            </div>
+            <button class="swap" id="swap" aria-label="Währungen tauschen">↔</button>
+            <div class="select-group">
+              <label for="to">Zu</label>
+              <select id="to"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="range-block">
+          <div class="range-tabs" role="tablist" aria-label="Zeitraum">
+            <button class="tab" data-range="2w">2 Wochen</button>
+            <button class="tab" data-range="1m">1 Monat</button>
+            <button class="tab" data-range="3m">3 Monate</button>
+            <button class="tab" data-range="6m">6 Monate</button>
+            <button class="tab" data-range="1y">1 Jahr</button>
+            <button class="tab" data-range="3y">3 Jahre</button>
+          </div>
+          <div class="toggle-row">
+            <button class="tab toggle active" id="toggleExtremes" type="button">Hoch/Tief</button>
+            <button class="tab toggle active" id="toggleDetails" type="button">Details</button>
+            <button class="tab toggle active" id="toggleMetrics" type="button">Kennzahlen</button>
+            <div class="toggle-group" role="group" aria-label="Gleitende Durchschnitte">
+              <button class="tab toggle active" id="toggleMa7" type="button">GD 7</button>
+              <button class="tab toggle active" id="toggleMa30" type="button">GD 30</button>
+              <button class="tab toggle active" id="toggleMa90" type="button">GD 90</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-bar">
+          <div
+            class="stat-item tip-target"
+            tabindex="0"
+            data-tip="Letzter verfügbarer EZB-Referenzkurs im gewählten Zeitraum."
+          >
+            <span class="stat-label">Aktueller Kurs</span>
+            <span class="stat-value" id="current">–</span>
+          </div>
+          <div
+            class="stat-item tip-target"
+            tabindex="0"
+            data-tip="Niedrigster bis höchster Tageskurs im Zeitraum."
+          >
+            <span class="stat-label">Spannweite</span>
+            <span class="stat-value" id="range">–</span>
+          </div>
+          <div
+            class="stat-item tip-target"
+            tabindex="0"
+            data-tip="Differenz zwischen erstem und letztem Tageskurs im Zeitraum."
+          >
+            <span class="stat-label">Veränderung</span>
+            <span class="stat-value" id="change">–</span>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <canvas id="chart" width="920" height="360" aria-label="Kursverlauf"></canvas>
+          <div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <aside class="panel side">
+        <div class="side-card">
+          <h2>Trend</h2>
+          <div id="trend" class="trend">
+            <span class="trend-arrow">–</span>
+            <span class="trend-text">Keine Daten</span>
+          </div>
+          <div class="trend-bar" aria-hidden="true">
+            <div class="trend-fill" id="trendFill"></div>
+          </div>
+        </div>
+
+        <div class="side-card details-card" id="detailsCard">
+          <h2>Details</h2>
+          <ul class="meta">
+            <li><span>Basis</span><span id="pair">–</span></li>
+            <li><span>Zeitraum</span><span id="period">–</span></li>
+            <li><span>Letztes Update</span><span id="updated">–</span></li>
+            <li><span>Datenquelle</span><span>EZB (via Frankfurter)</span></li>
+          </ul>
+        </div>
+
+        <div class="side-card metrics-card" id="metricsCard">
+          <h2>Kennzahlen</h2>
+          <ul class="metrics">
+            <li class="tip-target" tabindex="0" data-tip="Arithmetischer Mittelwert der Tageskurse im Zeitraum.">
+              <span>Durchschnitt</span><span id="metricAvg">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Mittlerer Wert der Tageskurse (robust gegen Ausreißer).">
+              <span>Median</span><span id="metricMedian">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Gleitender Durchschnitt der letzten 7 Tage (falls verfügbar).">
+              <span>GD 7 Tage</span><span id="metricMa7">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Gleitender Durchschnitt der letzten 30 Tage (falls verfügbar).">
+              <span>GD 30 Tage</span><span id="metricMa30">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Gleitender Durchschnitt der letzten 90 Tage (falls verfügbar).">
+              <span>GD 90 Tage</span><span id="metricMa90">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Standardabweichung der täglichen prozentualen Änderungen.">
+              <span>Volatilität (Tag)</span><span id="metricVol">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Größter Rückgang vom Hoch zum Tief innerhalb des Zeitraums.">
+              <span>Max. Drawdown</span><span id="metricDrawdown">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Größte positive Tagesänderung in Prozent.">
+              <span>Bestes Tages-Delta</span><span id="metricBest">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Größte negative Tagesänderung in Prozent.">
+              <span>Schlechtestes Tages-Delta</span><span id="metricWorst">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Längste Serie an aufeinanderfolgenden Anstiegen bzw. Rückgängen.">
+              <span>Streaks (↑/↓)</span><span id="metricStreaks">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Lineare Trendsteigung der Kursreihe (pro Tag in %).">
+              <span>Trend-Steigung</span><span id="metricSlope">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Z-Score des letzten Kurses relativ zum Zeitraum (Standardabweichungen).">
+              <span>Z-Score</span><span id="metricZ">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Perzentil des letzten Kurses im Zeitraum (0–100%).">
+              <span>Perzentil</span><span id="metricPct">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Veränderung seit Monatsbeginn (falls im Zeitraum enthalten).">
+              <span>MTD</span><span id="metricMTD">–</span>
+            </li>
+            <li class="tip-target" tabindex="0" data-tip="Veränderung seit Jahresbeginn (falls im Zeitraum enthalten).">
+              <span>YTD</span><span id="metricYTD">–</span>
+            </li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="app-footer">
+      <span>Nur Referenzwerte, keine Handelskurse. Wochenenden/Feiertage werden mit dem letzten Kurs fortgeschrieben.</span>
+    </footer>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
