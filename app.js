@@ -6,6 +6,7 @@ const elements = {
   to: document.getElementById("to"),
   swap: document.getElementById("swap"),
   tabs: Array.from(document.querySelectorAll(".tab[data-range]")),
+  rangeSelect: document.getElementById("rangeSelect"),
   toggleExtremes: document.getElementById("toggleExtremes"),
   toggleMetrics: document.getElementById("toggleMetrics"),
   toggleDetails: document.getElementById("toggleDetails"),
@@ -15,6 +16,10 @@ const elements = {
   metricsCard: document.getElementById("metricsCard"),
   detailsCard: document.getElementById("detailsCard"),
   chart: document.getElementById("chart"),
+  chartFull: document.getElementById("chartFull"),
+  expandChart: document.getElementById("expandChart"),
+  closeChart: document.getElementById("closeChart"),
+  chartModal: document.getElementById("chartModal"),
   tooltip: document.getElementById("tooltip"),
   current: document.getElementById("current"),
   range: document.getElementById("range"),
@@ -98,6 +103,9 @@ function setActiveTab(rangeKey) {
   elements.tabs.forEach((tab) => {
     tab.classList.toggle("active", tab.dataset.range === rangeKey);
   });
+  if (elements.rangeSelect) {
+    elements.rangeSelect.value = rangeKey;
+  }
 }
 
 function clamp(value, min, max) {
@@ -463,8 +471,8 @@ function buildTickIndices(data, maxTicks = 7) {
   return Array.from(indices).sort((a, b) => a - b);
 }
 
-function drawChart(data) {
-  const canvas = elements.chart;
+function drawChart(data, targetCanvas = elements.chart) {
+  const canvas = targetCanvas;
   const ctx = canvas.getContext("2d");
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
@@ -679,12 +687,12 @@ function drawChart(data) {
   ctx.fillStyle = gradient;
   ctx.fill();
 
-  const drawExtreme = (index, label, value, color) => {
+  const drawExtreme = (index, label, value, color, yOffset = 0) => {
     if (index < 0) return;
     const ratioX = data.length === 1 ? 0.5 : index / (data.length - 1);
     const x = left + ratioX * width;
     const ratioY = (value - minY) / (maxY - minY);
-    const y = bottom - ratioY * height;
+    const y = bottom - ratioY * height + yOffset;
     ctx.save();
     ctx.setLineDash([4, 6]);
     ctx.strokeStyle = `${color}aa`;
@@ -718,8 +726,22 @@ function drawChart(data) {
 
   const accent = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
   if (showExtremes) {
-    drawExtreme(maxIndex, "", maxValue, highColor || accent);
-    drawExtreme(minIndex, "", minValue, lowColor || accent);
+    const highY = bottom - ((maxValue - minY) / (maxY - minY)) * height;
+    const lowY = bottom - ((minValue - minY) / (maxY - minY)) * height;
+    let highOffset = 0;
+    let lowOffset = 0;
+    const minGap = 24;
+    if (Math.abs(highY - lowY) < minGap) {
+      if (highY < lowY) {
+        highOffset = -minGap / 2;
+        lowOffset = minGap / 2;
+      } else {
+        highOffset = minGap / 2;
+        lowOffset = -minGap / 2;
+      }
+    }
+    drawExtreme(maxIndex, "", maxValue, highColor || accent, highOffset);
+    drawExtreme(minIndex, "", minValue, lowColor || accent, lowOffset);
   }
 
   const lastPoint = data[data.length - 1];
@@ -835,6 +857,15 @@ elements.tabs.forEach((tab) => {
   });
 });
 
+if (elements.rangeSelect) {
+  elements.rangeSelect.addEventListener("change", (event) => {
+    setActiveTab(event.target.value);
+    hoverIndex = null;
+    elements.tooltip.classList.remove("show");
+    refresh();
+  });
+}
+
 elements.toggleExtremes.addEventListener("click", () => {
   showExtremes = !showExtremes;
   elements.toggleExtremes.classList.toggle("active", showExtremes);
@@ -871,7 +902,7 @@ elements.toggleMa90.addEventListener("click", () => {
   drawChart(currentData);
 });
 
-elements.chart.addEventListener("mousemove", (event) => {
+function handleChartHover(event, canvas) {
   if (!chartState || currentData.length === 0) return;
   const { rect, left, right, top, bottom, minY, maxY, data } = chartState;
   const x = event.clientX - rect.left;
@@ -879,7 +910,7 @@ elements.chart.addEventListener("mousemove", (event) => {
   const ratio = clamp((x - left) / width, 0, 1);
   const index = Math.round(ratio * (data.length - 1));
   hoverIndex = index;
-  drawChart(currentData);
+  drawChart(currentData, canvas);
 
   const point = data[index];
   const ratioY = (point.value - minY) / (maxY - minY);
@@ -895,15 +926,23 @@ elements.chart.addEventListener("mousemove", (event) => {
   elements.tooltip.style.left = `${tooltipX + 18}px`;
   elements.tooltip.style.top = `${tooltipY + 6}px`;
   elements.tooltip.classList.add("show");
-});
+}
 
-elements.chart.addEventListener("mouseleave", () => {
+function handleChartLeave(canvas) {
   hoverIndex = null;
   elements.tooltip.classList.remove("show");
-  drawChart(currentData);
-});
+  drawChart(currentData, canvas);
+}
 
-window.addEventListener("resize", () => drawChart(currentData));
+elements.chart.addEventListener("mousemove", (event) => handleChartHover(event, elements.chart));
+elements.chart.addEventListener("mouseleave", () => handleChartLeave(elements.chart));
+
+window.addEventListener("resize", () => {
+  drawChart(currentData);
+  if (elements.chartModal.classList.contains("open")) {
+    drawChart(currentData, elements.chartFull);
+  }
+});
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -935,4 +974,21 @@ tipTargets.forEach((target) => {
 
 document.addEventListener("click", () => {
   tipTargets.forEach((item) => item.classList.remove("tip-open"));
+});
+
+elements.expandChart.addEventListener("click", () => {
+  elements.chartModal.classList.add("open");
+  elements.chartModal.setAttribute("aria-hidden", "false");
+  drawChart(currentData, elements.chartFull);
+});
+
+elements.closeChart.addEventListener("click", () => {
+  elements.chartModal.classList.remove("open");
+  elements.chartModal.setAttribute("aria-hidden", "true");
+});
+
+elements.chartModal.addEventListener("click", (event) => {
+  if (event.target === elements.chartModal) {
+    elements.closeChart.click();
+  }
 });

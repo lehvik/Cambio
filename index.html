@@ -61,6 +61,17 @@
             <button class="tab" data-range="1y">1 Jahr</button>
             <button class="tab" data-range="3y">3 Jahre</button>
           </div>
+          <div class="range-select">
+            <label class="sr-only" for="rangeSelect">Zeitraum</label>
+            <select id="rangeSelect" aria-label="Zeitraum auswählen">
+              <option value="2w">2 Wochen</option>
+              <option value="1m">1 Monat</option>
+              <option value="3m">3 Monate</option>
+              <option value="6m">6 Monate</option>
+              <option value="1y">1 Jahr</option>
+              <option value="3y">3 Jahre</option>
+            </select>
+          </div>
           <div class="toggle-row">
             <button class="tab toggle active" id="toggleExtremes" type="button">Hoch/Tief</button>
             <button class="tab toggle active" id="toggleDetails" type="button">Details</button>
@@ -101,6 +112,7 @@
         </div>
 
         <div class="chart-card">
+          <button class="chart-expand" id="expandChart" type="button" aria-label="Chart vergrößern">⤢</button>
           <canvas id="chart" width="920" height="360" aria-label="Kursverlauf"></canvas>
           <div id="tooltip" class="tooltip" role="status" aria-live="polite"></div>
         </div>
@@ -186,6 +198,13 @@
     </footer>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div id="chartModal" class="chart-modal" aria-hidden="true">
+      <div class="chart-modal-content" role="dialog" aria-modal="true" aria-label="Chart im Vollbild">
+        <button class="chart-close" id="closeChart" type="button" aria-label="Vollbild schließen">×</button>
+        <canvas id="chartFull" width="1200" height="700" aria-label="Kursverlauf groß"></canvas>
+      </div>
+    </div>
 
     <script src="app.js"></script>
   </body>
