@@ -129,9 +129,22 @@ h1 {
 .pair-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-areas: "from swap to";
   align-items: end;
   gap: 12px;
   width: 100%;
+}
+
+.from-group {
+  grid-area: from;
+}
+
+.to-group {
+  grid-area: to;
+}
+
+.swap {
+  grid-area: swap;
 }
 
 .select-group {
@@ -554,16 +567,17 @@ select {
 
 @media (max-width: 640px) {
   .app-header {
-    padding: 28px 4vw 16px;
+    padding: 24px 3vw 14px;
     gap: 16px;
   }
 
   .layout {
-    padding: 0 4vw 28px;
+    padding: 0 3vw 24px;
+    gap: 16px;
   }
 
   .app-footer {
-    padding: 8px 4vw 24px;
+    padding: 8px 3vw 20px;
   }
 
   .controls {
@@ -573,24 +587,41 @@ select {
   }
 
   .pair-control {
-    grid-template-columns: 1fr;
-    align-items: stretch;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "from swap"
+      "to swap";
+    align-items: center;
   }
 
   .swap {
-    justify-self: start;
+    justify-self: center;
     width: 44px;
     height: 44px;
     font-size: 1.2rem;
   }
 
   .range-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .toggle-row {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .tab.toggle {
+    width: 100%;
+    text-align: center;
+    justify-self: stretch;
+  }
+
+  .toggle-group {
+    width: 100%;
+    justify-content: space-between;
   }
 
   h1 {
@@ -604,15 +635,15 @@ select {
   }
 
   .panel {
-    padding: 18px;
+    padding: 16px;
   }
 
   .chart-card {
-    padding: 12px;
+    padding: 10px;
   }
 
   #chart {
-    height: 300px;
+    height: 340px;
   }
 
   .badge {
@@ -642,12 +673,14 @@ select {
   }
 
   .side-card {
-    padding: 16px;
+    padding: 14px;
   }
 
   .meta li,
   .metrics li {
     padding: 10px 10px;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .metrics {
@@ -656,6 +689,14 @@ select {
 
   .tooltip {
     max-width: 70vw;
+  }
+
+  .stats-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat-item:last-child {
+    grid-column: 1 / -1;
   }
 }
 
@@ -683,17 +724,17 @@ select {
   }
 
   #chart {
-    height: 280px;
+    height: 320px;
   }
 }
 
 @media (max-width: 360px) {
   .app-header {
-    padding: 24px 3.5vw 12px;
+    padding: 20px 2.5vw 10px;
   }
 
   .layout {
-    padding: 0 3.5vw 24px;
+    padding: 0 2.5vw 20px;
   }
 
   h1 {
@@ -706,6 +747,6 @@ select {
   }
 
   #chart {
-    height: 260px;
+    height: 300px;
   }
 }

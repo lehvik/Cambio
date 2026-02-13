@@ -435,8 +435,13 @@ function parseDateString(dateString) {
   return new Date(year, month - 1, day);
 }
 
-function formatAxisDate(dateString, includeYear) {
+function formatAxisDate(dateString, includeYear, compact = false) {
   const date = parseDateString(dateString);
+  if (compact) {
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    return `${day}.${month}`;
+  }
   return date.toLocaleDateString("de-DE", {
     day: "2-digit",
     month: "short",
@@ -484,10 +489,10 @@ function drawChart(data) {
   const maxY = max + padding;
 
   const isCompact = rect.width < 520;
-  const left = isCompact ? 32 : 48;
-  const top = isCompact ? 20 : 24;
-  const right = rect.width - (isCompact ? 14 : 20);
-  const bottom = rect.height - (isCompact ? 34 : 40);
+  const left = isCompact ? 24 : 48;
+  const top = isCompact ? 16 : 24;
+  const right = rect.width - (isCompact ? 10 : 20);
+  const bottom = rect.height - (isCompact ? 30 : 40);
   const width = right - left;
   const height = bottom - top;
 
@@ -511,7 +516,7 @@ function drawChart(data) {
   ctx.lineTo(right, bottom);
   ctx.stroke();
 
-  const tickIndices = buildTickIndices(data, isCompact ? 5 : 7);
+  const tickIndices = buildTickIndices(data, isCompact ? 4 : 7);
   const includeYear = data.length >= 180;
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.font = isCompact ? "10px Sora" : "11px Sora";
@@ -524,9 +529,9 @@ function drawChart(data) {
     ctx.lineTo(x, bottom + 6);
     ctx.stroke();
 
-    const label = formatAxisDate(data[index].date, includeYear);
+    const label = formatAxisDate(data[index].date, includeYear, isCompact);
     const textWidth = ctx.measureText(label).width;
-    ctx.fillText(label, x - textWidth / 2, bottom + (isCompact ? 18 : 22));
+    ctx.fillText(label, x - textWidth / 2, bottom + (isCompact ? 16 : 22));
   });
 
   const first = data[0].value;
@@ -545,17 +550,18 @@ function drawChart(data) {
     if (index < 0) return;
     const ratioX = data.length === 1 ? 0.5 : index / (data.length - 1);
     const x = left + ratioX * width;
-    const text = `${label}: ${formatAxisDate(data[index].date, includeYear)}`;
+    const text = `${label}: ${formatAxisDate(data[index].date, includeYear, isCompact)}`;
     ctx.strokeStyle = `${color}cc`;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(x, bottom);
-    ctx.lineTo(x, bottom + 10);
+    ctx.lineTo(x, bottom + (isCompact ? 8 : 10));
     ctx.stroke();
     ctx.fillStyle = color;
-    ctx.font = "11px Sora";
+    ctx.font = isCompact ? "10px Sora" : "11px Sora";
     const textWidth = ctx.measureText(text).width;
-    ctx.fillText(text, x - textWidth / 2, bottom + 38);
+    const labelX = Math.min(Math.max(x - textWidth / 2, left), right - textWidth);
+    ctx.fillText(text, labelX, bottom + (isCompact ? 30 : 38));
   };
 
   const highColor = getComputedStyle(document.documentElement).getPropertyValue("--positive").trim() || "#16a34a";
