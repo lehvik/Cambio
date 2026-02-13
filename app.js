@@ -444,11 +444,10 @@ function formatAxisDate(dateString, includeYear) {
   });
 }
 
-function buildTickIndices(data) {
+function buildTickIndices(data, maxTicks = 7) {
   const count = data.length;
   if (count <= 1) return [0];
 
-  const maxTicks = 7;
   const step = Math.ceil(count / maxTicks);
   const indices = new Set();
   for (let i = 0; i < count; i += step) {
@@ -484,10 +483,11 @@ function drawChart(data) {
   const minY = min - padding;
   const maxY = max + padding;
 
-  const left = 48;
-  const top = 24;
-  const right = rect.width - 20;
-  const bottom = rect.height - 40;
+  const isCompact = rect.width < 520;
+  const left = isCompact ? 32 : 48;
+  const top = isCompact ? 20 : 24;
+  const right = rect.width - (isCompact ? 14 : 20);
+  const bottom = rect.height - (isCompact ? 34 : 40);
   const width = right - left;
   const height = bottom - top;
 
@@ -511,10 +511,10 @@ function drawChart(data) {
   ctx.lineTo(right, bottom);
   ctx.stroke();
 
-  const tickIndices = buildTickIndices(data);
+  const tickIndices = buildTickIndices(data, isCompact ? 5 : 7);
   const includeYear = data.length >= 180;
   ctx.fillStyle = "rgba(255,255,255,0.55)";
-  ctx.font = "11px Sora";
+  ctx.font = isCompact ? "10px Sora" : "11px Sora";
   tickIndices.forEach((index) => {
     const ratioX = data.length === 1 ? 0.5 : index / (data.length - 1);
     const x = left + ratioX * width;
@@ -526,7 +526,7 @@ function drawChart(data) {
 
     const label = formatAxisDate(data[index].date, includeYear);
     const textWidth = ctx.measureText(label).width;
-    ctx.fillText(label, x - textWidth / 2, bottom + 22);
+    ctx.fillText(label, x - textWidth / 2, bottom + (isCompact ? 18 : 22));
   });
 
   const first = data[0].value;

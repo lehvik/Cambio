@@ -1,6 +1,6 @@
 {
-  "name": "FX Verlauf",
-  "short_name": "FX Verlauf",
+  "name": "Cambio",
+  "short_name": "Cambio",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

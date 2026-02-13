@@ -73,6 +73,7 @@ h1 {
   font-size: clamp(2.2rem, 4vw, 3.4rem);
   font-weight: 600;
   margin-bottom: 12px;
+  overflow-wrap: anywhere;
 }
 
 .subline {
@@ -103,7 +104,7 @@ h1 {
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 28px;
+  padding: 24px;
   backdrop-filter: blur(12px);
 }
 
@@ -552,16 +553,23 @@ select {
 }
 
 @media (max-width: 640px) {
-  .app-header,
-  .layout,
+  .app-header {
+    padding: 28px 4vw 16px;
+    gap: 16px;
+  }
+
+  .layout {
+    padding: 0 4vw 28px;
+  }
+
   .app-footer {
-    padding-left: 6vw;
-    padding-right: 6vw;
+    padding: 8px 4vw 24px;
   }
 
   .controls {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
 
   .pair-control {
@@ -571,6 +579,9 @@ select {
 
   .swap {
     justify-self: start;
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
   }
 
   .range-tabs {
@@ -580,5 +591,121 @@ select {
   .toggle-row {
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  h1 {
+    font-size: clamp(1.7rem, 8.5vw, 2.4rem);
+    line-height: 1.15;
+  }
+
+  .subline {
+    font-size: 0.95rem;
+    max-width: none;
+  }
+
+  .panel {
+    padding: 18px;
+  }
+
+  .chart-card {
+    padding: 12px;
+  }
+
+  #chart {
+    height: 300px;
+  }
+
+  .badge {
+    align-self: flex-start;
+  }
+
+  .kicker {
+    letter-spacing: 0.2em;
+  }
+
+  select {
+    height: 44px;
+    font-size: 1rem;
+  }
+
+  .tab {
+    padding: 10px 12px;
+    font-size: 0.88rem;
+  }
+
+  .stats-bar {
+    gap: 0;
+  }
+
+  .stat-value {
+    font-size: 1.05rem;
+  }
+
+  .side-card {
+    padding: 16px;
+  }
+
+  .meta li,
+  .metrics li {
+    padding: 10px 10px;
+  }
+
+  .metrics {
+    font-size: 0.92rem;
+  }
+
+  .tooltip {
+    max-width: 70vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .range-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .toggle-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .toggle-group .tab.toggle {
+    flex: 1;
+    text-align: center;
+  }
+
+  .tab.toggle {
+    font-size: 0.85rem;
+  }
+
+  .stats-bar {
+    border-radius: 12px;
+  }
+
+  #chart {
+    height: 280px;
+  }
+}
+
+@media (max-width: 360px) {
+  .app-header {
+    padding: 24px 3.5vw 12px;
+  }
+
+  .layout {
+    padding: 0 3.5vw 24px;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  .tab {
+    font-size: 0.82rem;
+    padding: 9px 10px;
+  }
+
+  #chart {
+    height: 260px;
   }
 }

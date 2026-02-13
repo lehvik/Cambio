@@ -1,4 +1,4 @@
-const STATIC_CACHE = "fx-static-v2";
+const STATIC_CACHE = "fx-static-v3";
 const DATA_CACHE = "fx-data-v1";
 const ASSETS = [
   "./",
