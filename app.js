@@ -20,6 +20,8 @@ const elements = {
   expandChart: document.getElementById("expandChart"),
   closeChart: document.getElementById("closeChart"),
   chartModal: document.getElementById("chartModal"),
+  toggleOrientation: document.getElementById("toggleOrientation"),
+  rotateChart: document.getElementById("rotateChart"),
   tooltip: document.getElementById("tooltip"),
   current: document.getElementById("current"),
   range: document.getElementById("range"),
@@ -687,6 +689,25 @@ function drawChart(data, targetCanvas = elements.chart) {
   ctx.fillStyle = gradient;
   ctx.fill();
 
+  const getExtremeBox = (index, value, yOffset = 0) => {
+    if (index < 0) return null;
+    const ratioX = data.length === 1 ? 0.5 : index / (data.length - 1);
+    const x = left + ratioX * width;
+    const ratioY = (value - minY) / (maxY - minY);
+    const y = bottom - ratioY * height + yOffset;
+    const valueLabel = `1 ${elements.from.value} = ${formatNumber(value)} ${elements.to.value}`;
+    ctx.font = "12px Sora";
+    const paddingX = 8;
+    const paddingY = 6;
+    const lineHeight = 14;
+    const textWidth = ctx.measureText(valueLabel).width;
+    const boxWidth = textWidth + paddingX * 2;
+    const boxHeight = lineHeight + paddingY * 2;
+    const boxX = Math.min(Math.max(x + 8, left), right - boxWidth);
+    const boxY = Math.min(Math.max(y - boxHeight / 2, top), bottom - boxHeight);
+    return { boxX, boxY, boxWidth, boxHeight, valueLabel };
+  };
+
   const drawExtreme = (index, label, value, color, yOffset = 0) => {
     if (index < 0) return;
     const ratioX = data.length === 1 ? 0.5 : index / (data.length - 1);
@@ -703,41 +724,47 @@ function drawChart(data, targetCanvas = elements.chart) {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    const valueLabel = `1 ${elements.from.value} = ${formatNumber(value)} ${elements.to.value}`;
-    ctx.font = "12px Sora";
-    const paddingX = 8;
-    const paddingY = 6;
-    const lineHeight = 14;
-    const textWidth = ctx.measureText(valueLabel).width;
-    const boxWidth = textWidth + paddingX * 2;
-    const boxHeight = lineHeight + paddingY * 2;
-    const boxX = Math.min(Math.max(x + 8, left), right - boxWidth);
-    const boxY = Math.min(Math.max(y - boxHeight / 2, top), bottom - boxHeight);
+    const box = getExtremeBox(index, value, yOffset);
+    if (!box) {
+      ctx.restore();
+      return;
+    }
 
     ctx.fillStyle = "rgba(10, 18, 42, 0.9)";
     ctx.strokeStyle = `${color}cc`;
     ctx.lineWidth = 1;
-    ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
-    ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
+    ctx.fillRect(box.boxX, box.boxY, box.boxWidth, box.boxHeight);
+    ctx.strokeRect(box.boxX, box.boxY, box.boxWidth, box.boxHeight);
     ctx.fillStyle = color;
-    ctx.fillText(valueLabel, boxX + paddingX, boxY + paddingY + lineHeight - 2);
+    ctx.fillText(box.valueLabel, box.boxX + 8, box.boxY + 6 + 14 - 2);
     ctx.restore();
   };
 
   const accent = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
   if (showExtremes) {
-    const highY = bottom - ((maxValue - minY) / (maxY - minY)) * height;
-    const lowY = bottom - ((minValue - minY) / (maxY - minY)) * height;
     let highOffset = 0;
     let lowOffset = 0;
-    const minGap = 24;
-    if (Math.abs(highY - lowY) < minGap) {
-      if (highY < lowY) {
-        highOffset = -minGap / 2;
-        lowOffset = minGap / 2;
-      } else {
-        highOffset = minGap / 2;
-        lowOffset = -minGap / 2;
+    const highBox = getExtremeBox(maxIndex, maxValue, 0);
+    const lowBox = getExtremeBox(minIndex, minValue, 0);
+    if (highBox && lowBox) {
+      const overlapX =
+        highBox.boxX < lowBox.boxX + lowBox.boxWidth &&
+        highBox.boxX + highBox.boxWidth > lowBox.boxX;
+      const overlapY =
+        highBox.boxY < lowBox.boxY + lowBox.boxHeight &&
+        highBox.boxY + highBox.boxHeight > lowBox.boxY;
+      if (overlapX && overlapY) {
+        const overlapAmount =
+          Math.min(highBox.boxY + highBox.boxHeight, lowBox.boxY + lowBox.boxHeight) -
+          Math.max(highBox.boxY, lowBox.boxY);
+        const shift = overlapAmount / 2 + 8;
+        if (highBox.boxY <= lowBox.boxY) {
+          highOffset -= shift;
+          lowOffset += shift;
+        } else {
+          highOffset += shift;
+          lowOffset -= shift;
+        }
       }
     }
     drawExtreme(maxIndex, "", maxValue, highColor || accent, highOffset);
@@ -979,7 +1006,7 @@ document.addEventListener("click", () => {
 elements.expandChart.addEventListener("click", () => {
   elements.chartModal.classList.add("open");
   elements.chartModal.setAttribute("aria-hidden", "false");
-  drawChart(currentData, elements.chartFull);
+  requestAnimationFrame(() => drawChart(currentData, elements.chartFull));
 });
 
 elements.closeChart.addEventListener("click", () => {
@@ -991,4 +1018,16 @@ elements.chartModal.addEventListener("click", (event) => {
   if (event.target === elements.chartModal) {
     elements.closeChart.click();
   }
+});
+
+elements.toggleOrientation.addEventListener("click", () => {
+  const content = elements.chartModal.querySelector(".chart-modal-content");
+  content.classList.toggle("wide");
+  requestAnimationFrame(() => drawChart(currentData, elements.chartFull));
+});
+
+elements.rotateChart.addEventListener("click", () => {
+  const content = elements.chartModal.querySelector(".chart-modal-content");
+  content.classList.toggle("rotated");
+  requestAnimationFrame(() => drawChart(currentData, elements.chartFull));
 });

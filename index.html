@@ -30,22 +30,20 @@
     <header class="app-header">
       <div>
         <p class="kicker">FX Verlauf</p>
-        <h1>Währungsentwicklung im Blick</h1>
-        <p class="subline">Referenzkurse (täglich) der EZB, visualisiert als PWA.</p>
+        <h1 class="app-title">Cambio</h1>
       </div>
-      <div class="badge">Daily Data</div>
     </header>
 
     <main class="layout">
       <section class="panel">
         <div class="row controls">
           <div class="pair-control">
-            <div class="select-group from-group">
+            <div class="select-group inline from-group">
               <label for="from">Von</label>
               <select id="from"></select>
             </div>
             <button class="swap" id="swap" aria-label="Währungen tauschen">↔</button>
-            <div class="select-group to-group">
+            <div class="select-group inline to-group">
               <label for="to">Zu</label>
               <select id="to"></select>
             </div>
@@ -194,15 +192,19 @@
     </main>
 
     <footer class="app-footer">
-      <span>Nur Referenzwerte, keine Handelskurse. Wochenenden/Feiertage werden mit dem letzten Kurs fortgeschrieben.</span>
+      <span>Tägliche EZB-Referenzkurse. Keine Handelskurse. Wochenenden und Feiertage werden mit dem letzten verfügbaren Kurs fortgeschrieben.</span>
     </footer>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
     <div id="chartModal" class="chart-modal" aria-hidden="true">
       <div class="chart-modal-content" role="dialog" aria-modal="true" aria-label="Chart im Vollbild">
+        <button class="chart-orient" id="toggleOrientation" type="button" aria-label="Layout wechseln">↔</button>
+        <button class="chart-rotate" id="rotateChart" type="button" aria-label="Chart drehen">⤾</button>
         <button class="chart-close" id="closeChart" type="button" aria-label="Vollbild schließen">×</button>
-        <canvas id="chartFull" width="1200" height="700" aria-label="Kursverlauf groß"></canvas>
+        <div class="chart-full-wrap">
+          <canvas id="chartFull" width="1200" height="700" aria-label="Kursverlauf groß"></canvas>
+        </div>
       </div>
     </div>
 
