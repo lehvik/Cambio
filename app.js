@@ -961,6 +961,27 @@ function handleChartLeave(canvas) {
   drawChart(currentData, canvas);
 }
 
+function updateFullscreenRotationScale() {
+  const content = elements.chartModal.querySelector(".chart-modal-content");
+  if (!content) return;
+  if (!content.classList.contains("rotated")) {
+    content.style.removeProperty("--rot-scale");
+    content.style.removeProperty("--rot-cw");
+    content.style.removeProperty("--rot-ch");
+    return;
+  }
+
+  const wrap = content.querySelector(".chart-full-wrap");
+  if (!wrap) return;
+  const width = wrap.clientWidth;
+  const height = wrap.clientHeight;
+  if (!width || !height) return;
+
+  content.style.setProperty("--rot-cw", `${height}px`);
+  content.style.setProperty("--rot-ch", `${width}px`);
+  content.style.setProperty("--rot-scale", "0.98");
+}
+
 elements.chart.addEventListener("mousemove", (event) => handleChartHover(event, elements.chart));
 elements.chart.addEventListener("mouseleave", () => handleChartLeave(elements.chart));
 
@@ -968,6 +989,7 @@ window.addEventListener("resize", () => {
   drawChart(currentData);
   if (elements.chartModal.classList.contains("open")) {
     drawChart(currentData, elements.chartFull);
+    requestAnimationFrame(updateFullscreenRotationScale);
   }
 });
 
@@ -1006,7 +1028,10 @@ document.addEventListener("click", () => {
 elements.expandChart.addEventListener("click", () => {
   elements.chartModal.classList.add("open");
   elements.chartModal.setAttribute("aria-hidden", "false");
-  requestAnimationFrame(() => drawChart(currentData, elements.chartFull));
+  requestAnimationFrame(() => {
+    drawChart(currentData, elements.chartFull);
+    updateFullscreenRotationScale();
+  });
 });
 
 elements.closeChart.addEventListener("click", () => {
@@ -1023,11 +1048,17 @@ elements.chartModal.addEventListener("click", (event) => {
 elements.toggleOrientation.addEventListener("click", () => {
   const content = elements.chartModal.querySelector(".chart-modal-content");
   content.classList.toggle("wide");
-  requestAnimationFrame(() => drawChart(currentData, elements.chartFull));
+  requestAnimationFrame(() => {
+    drawChart(currentData, elements.chartFull);
+    updateFullscreenRotationScale();
+  });
 });
 
 elements.rotateChart.addEventListener("click", () => {
   const content = elements.chartModal.querySelector(".chart-modal-content");
   content.classList.toggle("rotated");
-  requestAnimationFrame(() => drawChart(currentData, elements.chartFull));
+  requestAnimationFrame(() => {
+    drawChart(currentData, elements.chartFull);
+    updateFullscreenRotationScale();
+  });
 });

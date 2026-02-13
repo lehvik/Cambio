@@ -61,6 +61,28 @@ body {
   gap: 24px;
 }
 
+.app-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-logo {
+  width: 36px;
+  height: 36px;
+  background: url("icons/icon-192.png") center/contain no-repeat;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 6px 14px rgba(30, 94, 255, 0.25));
+}
+
+@supports ((-webkit-mask-image: url("")) or (mask-image: url(""))) {
+  .app-logo {
+    background: linear-gradient(90deg, #f4f7ff 0%, #7aa7ff 48%, #f4f7ff 100%);
+    -webkit-mask: url("icons/icon-192.png") center/contain no-repeat;
+    mask: url("icons/icon-192.png") center/contain no-repeat;
+  }
+}
+
 .kicker {
   text-transform: uppercase;
   letter-spacing: 0.3em;
@@ -83,6 +105,10 @@ h1 {
   display: inline-block;
   letter-spacing: 0.04em;
   color: var(--text);
+}
+
+.app-brand .app-title {
+  margin-bottom: 0;
 }
 
 @supports (-webkit-background-clip: text) {
@@ -601,7 +627,9 @@ select {
 }
 
 .chart-modal-content.rotated #chartFull {
-  transform: rotate(90deg);
+  width: var(--rot-cw, 100%);
+  height: var(--rot-ch, 100%);
+  transform: rotate(90deg) scale(var(--rot-scale, 0.98));
   transform-origin: center;
 }
 
@@ -635,11 +663,7 @@ select {
   }
 
   .chart-modal-content.rotated #chartFull {
-    transform: rotate(90deg) scale(0.9);
-  }
-
-  .chart-modal-content.rotated.wide #chartFull {
-    transform: rotate(90deg) scale(0.95);
+    transform: rotate(90deg) scale(var(--rot-scale, 0.9));
   }
 }
 
